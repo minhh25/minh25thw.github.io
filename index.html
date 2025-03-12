@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz App - 4 Loại Câu Hỏi</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+    body {
+      background: #f5f7fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      background: #fff;
+      padding: 20px;
+    }
+    .personal-info {
+      background-color: #5ad761;
+      color: #fff;
+      padding: 30px;
+    }
+    .personal-info h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+    .personal-info .form-group {
+      margin-bottom: 15px;
+    }
+    .personal-info label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .personal-info input[type="text"],
+    .personal-info input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      margin-top: 5px;
+    }
+    .personal-info button {
+      display: block;
+      width: 100%;
+      background: #fff;
+      color: #333;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 5px;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .personal-info button:hover {
+      background: #f0f0f0;
+    }
+    /* Phan Quiz*/
+    .quiz-section h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+      font-size: 26px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    .progress {
+      height: 100%;
+      background: #4caf50;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .question-card {
+      margin-bottom: 15px;
+      padding: 20px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background: #fafafa;
+      transition: transform 0.3s;
+    }
+    .question-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .question {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .options-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .option-item {
+      flex: 1 1 calc(50% - 10px);
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s;
+    }
+    .option-item input {
+    margin-right: 8px; 
+    }
+
+    .option-item:hover {
+      background: #e0f7fa;
+      border-color: #4caf50;
+    }
+    .option-item.selected {
+      background: #4caf50;
+      color: #fff;
+      border-color: #4caf50;
+    }
+    .submit-btn {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 40px auto 20px auto;
+      transition: background 0.3s;
+    }
+    .submit-btn:hover {
+      background: #45a049;
+    }
+    .result {
+      text-align: center;
+      padding: 20px;
+      display: none;
+      font-size: 20px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <!-- Phần nhập thông tin cá nhân -->
+  <div id="personalInfo" class="container personal-info">
+    <h1>Nhập Thông Tin Cá Nhân</h1>
+    <div class="form-group">
+      <label for="fullName">Họ và tên:</label>
+      <input type="text" id="fullName" placeholder="Nhập họ và tên" required />
+    </div>
+    <div class="form-group">
+      <label for="dob">Ngày tháng năm sinh:</label>
+      <input type="date" id="dob" required />
+    </div>
+    <div class="form-group">
+      <label for="cccd">CCCD:</label>
+      <input type="text" id="cccd" placeholder="Nhập số CCCD" required />
+    </div>
+    <div class="form-group">
+      <label for="address">Địa chỉ thường trú:</label>
+      <input type="text" id="address" placeholder="Nhập địa chỉ" required />
+    </div>
+    <button type="button" onclick="startQuiz()">Bắt đầu Khảo Sát</button>
+  </div>
+
+  <!-- Phần Quiz -->
+  <div id="quizSection" class="container quiz-section" style="display:none">
+    <h1>Khảo Sát 40 Câu Hỏi</h1>
+    <div class="progress-bar">
+      <div class="progress"></div>
+    </div>
+    <div id="quiz"></div>
+    <button class="submit-btn" onclick="submitQuiz()">Nộp Bài</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    
+    const quizData = [
+      // Môn Địa lý (10 câu) 
+      {
+        question: "Thủ đô của Việt Nam là gì?",
+        options: ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Huế"],
+        correct: [0],
+        type: "single"
+      },
+      {
+        question: "Vịnh Hạ Long nằm ở tỉnh nào?",
+        options: ["Quảng Ninh", "Thanh Hóa", "Khánh Hòa", "Bình Định"],
+        correct: [0],
+        type: "single"
+      },
+      {
+        question: "Sông Mekong bắt nguồn từ quốc gia nào?",
+        options: ["Trung Quốc", "Lào", "Thái Lan", "Việt Nam"],
+        correct: [0],
+        type: "single"
+      },
+
+      {
+        question: "Các yếu tố tự nhiên quyết định đến địa hình gồm những gì?",
+        options: ["Địa chất", "Khí hậu", "Thảm thực vật", "Hoạt động của con người"],
+        correct: [0, 1, 2],
+        type: "multiple"
+      },
+      {
+        question: "Các loại đất phổ biến ở Việt Nam là:",
+        options: ["Đất đỏ bazan", "Đất mặn", "Đất đen", "Đất phù sa"],
+        correct: [0, 3],
+        type: "multiple"
+      },
+      {
+        question: "Các thành phần của bản đồ gồm:",
+        options: ["Địa hình", "Hệ tọa độ", "Màu sắc", "Ký hiệu"],
+        correct: [0, 1, 3],
+        type: "multiple"
+      },
+ 
+      {
+        question: "Sa mạc Sahara là sa mạc lớn nhất thế giới.",
+        options: [], 
+        correct: [0],
+        type: "truefalse"
+      },
+      {
+        question: "Hà Nội từng là thủ đô của Việt Nam trong quá khứ.",
+        options: [],
+        correct: [0],
+        type: "truefalse"
+      },
+      {
+        question: "Hãy mô tả đặc điểm địa lý của Việt Nam.",
+        options: [],
+        correct: null,
+        type: "essay"
+      },
+      {
+        question: "Giải thích ý nghĩa của các yếu tố tự nhiên trong việc hình thành địa hình.",
+        options: [],
+        correct: null,
+        type: "essay"
+      },
+
+      // Môn Toán (10 câu)
+      {
+        question: "Tính 5 + 7 = ?",
+        options: ["10", "11", "12", "13"],
+        correct: [2],
+        type: "single"
+      },
+      {
+        question: "Tích của 6 và 7 là ?",
+        options: ["42", "36", "48", "40"],
+        correct: [0],
+        type: "single"
+      },
+      {
+        question: "Giá trị của π xấp xỉ bằng bao nhiêu?",
+        options: ["3.14", "2.17", "4.13", "3.00"],
+        correct: [0],
+        type: "single"
+      },
+      {
+        question: "Các số sau đây là số nguyên tố:",
+        options: ["2", "4", "5", "9"],
+        correct: [0, 2],
+        type: "multiple"
+      },
+      {
+        question: "Các thuộc tính của tam giác đều là:",
+        options: ["Ba cạnh bằng nhau", "Ba góc bằng nhau", "Có đường cao trung tuyến chung", "Luôn là tam giác vuông"],
+        correct: [0, 1, 2],
+        type: "multiple"
+      },
+      {
+        question: "Các đặc điểm của số chẵn bao gồm:",
+        options: ["Chia hết cho 2", "Là số nguyên", "Tồn tại trong dãy số tự nhiên", "Là số lẻ"],
+        correct: [0, 1, 2],
+        type: "multiple"
+      },
+      {
+        question: "Số 0 là số chẵn.",
+        options: [],
+        correct: [0],
+        type: "truefalse"
+      },
+      {
+        question: "Mọi số nguyên tố đều là số lẻ.",
+        options: [],
+        correct: [1],
+        type: "truefalse"
+      },
+      {
+        question: "Giải thích định lý Pythago",
+        options: [],
+        correct: null,
+        type: "essay"
+      },
+      {
+        question: "Trình bày các phương pháp giải phương trình bậc hai",
+        options: [],
+        correct: null,
+        type: "essay"
+      },
+
+      //Môn Tiếng Anh (10 câu)
+      {
+        question: "What is the antonym of 'happy'?",
+        options: ["Sad", "Joyful", "Cheerful", "Excited"],
+        correct: [0],
+        type: "single"
+      },
+      {
+        question: "Select the correct past tense of 'run'.",
+        options: ["ran", "run", "runned", "running"],
+        correct: [0],
+        type: "single"
+      },
+      {
+        question: "Which word is a noun?",
+        options: ["Run", "Beautiful", "Quickly", "Book"],
+        correct: [3],
+        type: "single"
+      },
+      {
+        question: "Choose the adjectives from the list:",
+        options: ["Happy", "Quickly", "Blue", "Run"],
+        correct: [0, 2],
+        type: "multiple"
+      },
+      {
+        question: "Select the modal verbs:",
+        options: ["can", "should", "do", "will"],
+        correct: [0, 1, 3],
+        type: "multiple"
+      },
+      {
+        question: "Select the correct articles:",
+        options: ["a", "an", "the", "and"],
+        correct: [0, 1, 2],
+        type: "multiple"
+      },
+      {
+        question: "In English, adjectives do not change form based on gender.",
+        options: [],
+        correct: [0],
+        type: "truefalse"
+      },
+      {
+        question: "The plural of 'child' is 'childs'.",
+        options: [],
+        correct: [1],
+        type: "truefalse"
+      },
+
+      {
+        question: "Describe your favorite book in English.",
+        options: [],
+        correct: null,
+        type: "essay"
+      },
+      {
+        question: "Explain the importance of learning English in today's globalized world.",
+        options: [],
+        correct: null,
+        type: "essay"
+      },
+
+      // Môn Vật Lý (10 câu)
+      
+      {
+        question: "What is the SI unit of force?",
+        options: ["Newton", "Joule", "Watt", "Pascal"],
+        correct: [0],
+        type: "single"
+      },
+      {
+        question: "Who proposed the law of universal gravitation?",
+        options: ["Einstein", "Newton", "Galileo", "Tesla"],
+        correct: [1],
+        type: "single"
+      },
+      {
+        question: "What is the speed of light in vacuum (approx)?",
+        options: ["3 x 10^8 m/s", "3 x 10^6 m/s", "3 x 10^5 m/s", "3 x 10^7 m/s"],
+        correct: [0],
+        type: "single"
+      },
+
+      {
+        question: "Which of the following are fundamental forces in nature?",
+        options: ["Gravitational", "Electromagnetic", "Frictional", "Strong Nuclear"],
+        correct: [0, 1, 3],
+        type: "multiple"
+      },
+      {
+        question: "Identify the forms of energy:",
+        options: ["Kinetic", "Potential", "Thermal", "Mass"],
+        correct: [0, 1, 2],
+        type: "multiple"
+      },
+      {
+        question: "Select the instruments used to measure physical quantities:",
+        options: ["Thermometer", "Barometer", "Odometer", "Spectrometer"],
+        correct: [0, 1, 3],
+        type: "multiple"
+      },
+
+      {
+        question: "Sound travels faster in water than in air.",
+        options: [],
+        correct: [0],
+        type: "truefalse"
+      },
+      {
+        question: "Electric current is measured in volts.",
+        options: [],
+        correct: [1],
+        type: "truefalse"
+      },
+
+      {
+        question: "Explain the concept of inertia.",
+        options: [],
+        correct: null,
+        type: "essay"
+      },
+      {
+        question: "Discuss the impact of quantum mechanics on modern technology.",
+        options: [],
+        correct: null,
+        type: "essay"
+      }
+    ];
+
+    // Khởi tạo mảng lưu câu trả lời của người dùng
+    let userAnswers = new Array(quizData.length).fill([]);
+
+
+    // - "single": trắc nghiệm đơn
+    // - "multiple": chọn nhiều đáp án
+    // - "truefalse": tự động tạo 2 lựa chọn "Đúng"/"Sai"
+    // - "essay": text nhập câu trả lời
+    function createQuiz() {
+      const quizContainer = document.getElementById("quiz");
+      quizContainer.innerHTML = "";
+      quizData.forEach((q, index) => {
+        const card = document.createElement("div");
+        card.className = "question-card";
+        let optionsHTML = "";
+        if (q.type === "essay") {
+          optionsHTML = `<textarea rows="4" style="width:100%;" placeholder="Nhập câu trả lời của bạn..."></textarea>`;
+        } else if (q.type === "truefalse") {
+          optionsHTML = `
+            <div class="option-item">
+              <input type="radio" name="q${index}" value="0" style="pointer-events: none;">
+              <span>Đúng</span>
+            </div>
+            <div class="option-item">
+              <input type="radio" name="q${index}" value="1" style="pointer-events: none;">
+              <span>Sai</span>
+            </div>`;
+        } else {
+          // Cho cả "single" và "multiple"
+          optionsHTML = q.options.map((opt, i) => {
+            return `
+              <div class="option-item">
+                <input type="${q.type === "multiple" ? "checkbox" : "radio"}" 
+                       name="q${index}" value="${i}" style="pointer-events: none;">
+                <span>${opt}</span>
+              </div>
+            `;
+          }).join("");
+        }
+        card.innerHTML = `
+          <div class="question">${index + 1}. ${q.question}</div>
+          <div class="options-container">
+            ${optionsHTML}
+          </div>
+        `;
+        // Xử lý sự kiện nhập/xuất đáp án
+        if (q.type === "essay") {
+          const textarea = card.querySelector("textarea");
+          textarea.addEventListener("input", () => {
+            userAnswers[index] = textarea.value.trim();
+            updateProgress();
+          });
+        } else {
+          card.querySelectorAll(".option-item").forEach((item) => {
+            item.addEventListener("click", () => {
+              const input = item.querySelector("input");
+              // Với câu hỏi đơn (single hoặc truefalse)
+              if (q.type === "single" || q.type === "truefalse") {
+                card.querySelectorAll(".option-item").forEach((opt) => {
+                  opt.classList.remove("selected");
+                  opt.querySelector("input").checked = false;
+                });
+                item.classList.add("selected");
+                input.checked = true;
+                userAnswers[index] = [parseInt(input.value)];
+              } else if (q.type === "multiple") {
+                // Cho phép toggle chọn
+                item.classList.toggle("selected");
+                input.checked = !input.checked;
+                const selectedOptions = Array.from(card.querySelectorAll("input:checked"))
+                  .map(inp => parseInt(inp.value));
+                userAnswers[index] = selectedOptions;
+              }
+              updateProgress();
+            });
+          });
+        }
+        quizContainer.appendChild(card);
+      });
+    }
+
+    // Hàm cập nhật thanh tiến trình dựa vào số câu đã trả lời
+    function updateProgress() {
+      let answeredCount = 0;
+      quizData.forEach((q, index) => {
+        if (q.type === "essay") {
+          if (userAnswers[index] !== "") answeredCount++;
+        } else {
+          if (userAnswers[index].length > 0) answeredCount++;
+        }
+      });
+      const progress = (answeredCount / quizData.length) * 100;
+      document.querySelector(".progress").style.width = progress + "%";
+    }
+
+    // Hàm chuyển từ trang thông tin cá nhân sang quiz
+    function startQuiz() {
+      const fullName = document.getElementById("fullName").value;
+      const dob = document.getElementById("dob").value;
+      const cccd = document.getElementById("cccd").value;
+      const address = document.getElementById("address").value;
+      if (fullName && dob && cccd && address) {
+        document.getElementById("personalInfo").style.display = "none";
+        document.getElementById("quizSection").style.display = "block";
+        createQuiz();
+      } else {
+        alert("Vui lòng điền đầy đủ thông tin cá nhân!");
+      }
+    }
+
+    // Hàm nộp bài: chỉ tính điểm và hiển thị kết quả, không hiện đáp án đúng
+    function submitQuiz() {
+      let score = 0;
+      let gradedCount = 0;
+      quizData.forEach((q, index) => {
+        if (q.type !== "essay") {
+          gradedCount++;
+          if (arraysEqual(userAnswers[index].slice().sort(), q.correct ? q.correct.slice().sort() : [])) {
+            score++;
+          }
+        }
+      });
+      const resultDiv = document.getElementById("result");
+      resultDiv.style.display = "block";
+      resultDiv.textContent = "Your Score: " + score + " out of " + gradedCount;
+    }
+
+    // Hàm so sánh mảng
+    function arraysEqual(a, b) {
+      return Array.isArray(a) && Array.isArray(b) &&
+             a.length === b.length &&
+             a.every((val, index) => val === b[index]);
+    }
+  </script>
+</body>
+</html>
